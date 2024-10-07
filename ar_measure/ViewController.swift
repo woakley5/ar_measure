@@ -17,6 +17,8 @@ class ViewController: UIViewController, ARSessionDelegate {
     // Storing the dot1 and dot2 to calc distance btwn
     var dotNode1: ModelEntity?
     var dotNode2: ModelEntity?
+    
+    var bestDot: ModelEntity?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,33 +37,31 @@ class ViewController: UIViewController, ARSessionDelegate {
     @objc
     func handleViewTap(_ sender: UITapGestureRecognizer? = nil) {
         
-        guard let tapLocation = sender?.location(in: arView), let rayCastResult = arView.raycast(from: tapLocation, allowing: .estimatedPlane, alignment: .any).first else {
+        guard let tapLocation = sender?.location(in: arView), let rayCastQuery = arView.makeRaycastQuery(from: tapLocation, allowing: .estimatedPlane, alignment: .any) else {
             print("Oops something went wrong")
             return
         }
         
-        // result is RayCast from the view port onto the world mesh and get the first hit
-        let pos = rayCastResult.worldTransform
-        let resultAnchor = AnchorEntity(world: pos)
-        
-        // Put a dot centered on the result of the raycast
-        let currDot = createDot()
-        resultAnchor.addChild(currDot)
-        arView.scene.addAnchor(resultAnchor)
-        
-        // If there are no dots already, set the first
-        if dotNode1 == nil && dotNode2 == nil {
-            dotNode1 = currDot;
-        // If theres one dot set, set the second and calculate the distance to show
-        } else if dotNode2 == nil {
-            dotNode2 = currDot;
-            distanceLabel.text = "Distance: \(String(describing: getDistance()))\""
-        // If theres two dots set, clear it and reset the label
-        } else {
-            arView.scene.anchors.removeAll();
-            dotNode1 = nil;
-            dotNode2 = nil;
-            distanceLabel.text = "Distance: -"
+        arView.session.trackedRaycast(rayCastQuery) { results in
+            print("CLOSURE CALLED")
+            print(results)
+            
+            
+            guard let res = results.first else {
+                return
+            }
+            
+            if self.bestDot != nil {
+                self.arView.scene.anchors.removeAll();
+            }
+                
+            let resultAnchor = AnchorEntity(world:res.worldTransform)
+            
+            let currDot = self.createDot()
+            resultAnchor.addChild(currDot)
+            self.arView.scene.addAnchor(resultAnchor)
+            
+            self.bestDot = currDot
         }
     }
     
