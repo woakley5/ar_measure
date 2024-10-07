@@ -14,6 +14,7 @@ class ViewController: UIViewController, ARSessionDelegate {
     @IBOutlet weak var distanceLabel: UILabel!
     @IBOutlet weak var arView: ARView!
         
+    // Storing the dot1 and dot2 to calc distance btwn
     var dotNode1: ModelEntity?
     var dotNode2: ModelEntity?
 
@@ -64,6 +65,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         }
     }
     
+    // Generate the dot entity
     func createDot() -> ModelEntity {
         let dot = ModelEntity(mesh: .generateSphere(radius: 0.01), materials: [SimpleMaterial(color: .blue, isMetallic: false)])
         dot.position.y = 0.02
